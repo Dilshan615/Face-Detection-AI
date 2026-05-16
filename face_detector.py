@@ -53,8 +53,8 @@ def detect_faces(image_path):
     for i in range(detections.shape[2]):
         confidence = float(detections[0, 0, i, 2])
         
-        # Filter out weak detections (0.35 threshold to catch more faces)
-        if confidence > 0.35:
+        # Filter out weak detections (0.5 threshold to avoid false positives on background objects)
+        if confidence > 0.5:
             box = detections[0, 0, i, 3:7] * [width, height, width, height]
             (startX, startY, endX, endY) = box.astype("int")
             
@@ -71,7 +71,8 @@ def detect_faces(image_path):
             confidences.append(confidence)
 
     # Apply Non-Maximum Suppression (NMS) to remove overlapping duplicate boxes
-    indices = cv2.dnn.NMSBoxes(boxes, confidences, score_threshold=0.35, nms_threshold=0.4)
+    # Lowered nms_threshold to 0.2 to merge any boxes that overlap even slightly
+    indices = cv2.dnn.NMSBoxes(boxes, confidences, score_threshold=0.5, nms_threshold=0.2)
     
     faces_count = 0
     if len(indices) > 0:
@@ -79,17 +80,34 @@ def detect_faces(image_path):
         faces_count = len(indices)
         for i in indices:
             (x, y, w, h) = boxes[i]
-            # Draw a red rectangle (BGR: 0, 0, 255) around the face
-            cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 3)
+            
+            # Tighten the bounding box so it focuses strictly on the face (removes neck/hair)
+            offset_x = int(w * 0.08)  # 8% from left and right
+            offset_y = int(h * 0.12)  # 12% from top and bottom
+            
+            tight_x = x + offset_x
+            tight_y = y + offset_y
+            tight_w = w - (2 * offset_x)
+            tight_h = h - (2 * offset_y)
+            
+            # Draw a red rectangle (BGR: 0, 0, 255) around the tightened face area
+            cv2.rectangle(img, (tight_x, tight_y), (tight_x+tight_w, tight_y+tight_h), (0, 0, 255), 3)
 
     # Print the number of detected faces
     print(f"Detected {faces_count} face(s).")
     
-    # Save the result image
-    filename, ext = os.path.splitext(image_path)
-    output_path = f"{filename}_detected{ext}"
+    # Create a specific folder to save the detected images
+    save_folder = "Detected_Faces"
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+        
+    # Save the result image in the new folder
+    base_name = os.path.basename(image_path)
+    filename, ext = os.path.splitext(base_name)
+    output_path = os.path.join(save_folder, f"{filename}_detected{ext}")
+    
     cv2.imwrite(output_path, img)
-    print(f"Result saved to {output_path}")
+    print(f"Result saved to {os.path.abspath(output_path)}")
 
     # Display the image (resized to fit the screen)
     display_img = img.copy()

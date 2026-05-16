@@ -8,8 +8,9 @@ This version utilizes OpenCV's Deep Neural Network (DNN) module with a ResNet-10
 - **GUI Image Selection**: Easily select images from anywhere on your computer using a built-in file dialog.
 - **Background Face Detection**: Uses high-resolution scaling to find very small faces in the background.
 - **Smart Filtering**: Uses Non-Maximum Suppression (NMS) to ensure each face is only boxed once without duplicates.
+- **Precision Bounding Boxes**: Automatically tightens bounding boxes to strictly frame facial features (excluding neck and hair).
 - **Auto-Setup**: Automatically downloads the necessary AI model weights on the first run.
-- **Image Saving**: Automatically saves the processed image with detected faces highlighted in red.
+- **Organized Outputs**: Automatically creates a `Detected_Faces` directory and saves all processed images there, keeping your workspace clean.
 
 ## 🛠️ Prerequisites
 
@@ -41,7 +42,8 @@ For the AI to work, it requires two specific model files. The Python script is p
    python face_detector.py
    ```
 3. Choose any image (`.jpg`, `.png`, etc.) from your computer.
-4. The script will process the image, display the result on your screen (resized to fit your monitor), and save a copy of the full-resolution image with the detected faces in the same directory as your original image.
+4. The script will process the image and display the result on your screen (resized to fit your monitor).
+5. A copy of the full-resolution image with the detected faces will be saved securely inside the `Detected_Faces` folder within your project directory.
 
 Alternatively, you can provide an image path directly via the terminal:
 ```bash
